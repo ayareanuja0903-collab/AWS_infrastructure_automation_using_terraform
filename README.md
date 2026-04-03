@@ -2,142 +2,138 @@
 
 ## 📌 Project Overview
 
-This project provisions a **highly available, scalable, and secure AWS infrastructure** using Terraform.
-
-It includes:
-
-* 🌐 VPC with public & private subnets
-* 🚀 ECS Cluster (EC2 Launch Type)
-* ⚖️ Application Load Balancer (ALB)
-* 🗄️ RDS PostgreSQL (Multi-AZ)
-* 🌍 NAT Gateway for private subnet internet access
-* 🔐 Secure IAM roles & Security Groups
-* 📊 Monitoring with CloudWatch
+This project demonstrates a **complete production-style AWS infrastructure setup** using Terraform. It includes VPC networking, ECS (EC2 launch type), Application Load Balancer (ALB), and RDS PostgreSQL database deployed in a secure and scalable architecture.
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-Internet → ALB → ECS (Private Subnets) → RDS (Private)
-                 ↓
-             NAT Gateway
-```
-
----
-
-## 📁 Project Structure
-
-```
-terraform-aws-ecs-infra/
-│
-├── main.tf
-├── variables.tf
-├── outputs.tf
-├── provider.tf
-├── terraform.tfvars
-│
-├── modules/
-│   ├── vpc/
-│   ├── ecs/
-│   ├── alb/
-│   ├── rds/
+Internet
+   │
+   ▼
+Application Load Balancer (Public Subnets)
+   │
+   ▼
+ECS Cluster (EC2 Instances - Private Subnets)
+   │
+   ▼
+RDS PostgreSQL (Private Subnets)
 ```
 
 ---
 
 ## ⚙️ Technologies Used
 
-* Terraform
-* AWS (ECS, EC2, RDS, ALB, VPC)
-* IAM & Security Groups
-* CloudWatch Monitoring
+* Terraform (Infrastructure as Code)
+* AWS ECS (EC2 Launch Type)
+* AWS VPC (Networking)
+* AWS ALB (Load Balancing)
+* AWS RDS PostgreSQL (Database)
+* IAM (Roles & Policies)
+* Auto Scaling Group (ASG)
+* CloudWatch (Monitoring)
+
+---
+
+## 📂 Project Structure
+
+```
+AWS_infrastructure_automation_using_terraform/
+│
+├── main.tf
+├── variables.tf
+├── outputs.tf
+│
+├── modules/
+│   ├── vpc/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   │
+│   ├── ecs/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   │
+│   └── rds/
+│       ├── main.tf
+│       ├── variables.tf
+│       └── outputs.tf
+│
+└── .gitignore
+```
 
 ---
 
 ## 🌐 Infrastructure Components
 
-### 1. VPC & Networking
+### 🔹 VPC
 
-* CIDR: `10.0.0.0/16`
-* Public Subnets (ALB)
-* Private Subnets (ECS, RDS)
-* Internet Gateway (IGW)
-* NAT Gateway
-
----
-
-### 2. ECS Cluster
-
-* EC2 launch type
-* Auto Scaling Group
-* Runs containerized applications
+* Custom VPC with CIDR: `10.0.0.0/16`
+* Public & Private Subnets (Multi-AZ)
+* Internet Gateway & NAT Gateway
+* Route Tables & Associations
 
 ---
 
-### 3. Application Load Balancer
+### 🔹 ECS (EC2 Launch Type)
 
-* Public-facing
-* Routes traffic to ECS services
+* ECS Cluster with EC2 instances
+* Auto Scaling Group (ASG)
+* Launch Template
+* Capacity Provider
+* ECS Service & Task Definition (NGINX container)
 
 ---
 
-### 4. RDS PostgreSQL
+### 🔹 Load Balancer (ALB)
 
-* Multi-AZ deployment
-* Private subnet only
+* Deployed in public subnets
+* Listener on port 80 (HTTP)
+* Target group routing traffic to ECS tasks
+* Health checks enabled
+
+---
+
+### 🔹 RDS PostgreSQL
+
+* Engine: PostgreSQL 15
+* Instance Type: `db.t3.micro`
+* Multi-AZ enabled
+* Private subnet deployment
 * Automated backups enabled
 
 ---
 
-## 🔐 Security Best Practices
+## 🔐 Security Features
 
-* Least privilege IAM roles
-* Private subnets for ECS & RDS
-* Restricted Security Groups:
+* ECS instances in private subnets
+* RDS not publicly accessible
+* Security Groups configured:
 
-  * ALB → ECS
-  * ECS → RDS
-* No public DB exposure
+  * ALB → Public HTTP access
+  * ECS → Only ALB access
+  * RDS → Only ECS access
+* IAM roles with least privilege
 
 ---
 
 ## 🚀 Deployment Steps
 
-### 1. Clone Repository
-
-```bash
-git clone https://github.com/ayareanuja0903-collab/AWS_infrastructure_automation_using_terraform.git
-cd AWS_infrastructure_automation_using_terraform
-```
-
----
-
-### 2. Initialize Terraform
+### 1️⃣ Initialize Terraform
 
 ```bash
 terraform init
 ```
 
----
-
-### 3. Validate Configuration
-
-```bash
-terraform validate
-```
-
----
-
-### 4. Plan Infrastructure
+### 2️⃣ Plan Infrastructure
 
 ```bash
 terraform plan
 ```
 
----
-
-### 5. Apply Infrastructure
+### 3️⃣ Apply Configuration
 
 ```bash
 terraform apply
@@ -147,20 +143,86 @@ terraform apply
 
 ## 📤 Outputs
 
-* ALB DNS URL
-* RDS Endpoint
+After deployment, Terraform will output:
+
+* **ALB DNS**
+
+```
+http://my-alb-new-xxxxx.ap-south-1.elb.amazonaws.com
+```
+
+* **RDS Endpoint**
+
+```
+my-postgres-db.xxxxxx.ap-south-1.rds.amazonaws.com:5432
+```
 
 ---
 
-## 📊 Monitoring
+## 🧪 Testing
 
-* CloudWatch Logs
-* Metrics for ECS, ALB, and RDS
+### 🌐 Test Application
+
+Open ALB DNS in browser → Should display:
+
+```
+Welcome to NGINX
+```
+
+---
+
+### 🗄️ Test Database
+
+⚠️ RDS is deployed in private subnet (not publicly accessible)
+
+Options to connect:
+
+* Use Bastion Host (EC2)
+* Connect from ECS application
+* Temporarily enable public access for testing
+
+---
+
+## ⚠️ Common Issues & Fixes
+
+| Issue                             | Solution                                  |
+| --------------------------------- | ----------------------------------------- |
+| ECS tasks not running             | Check desired_count and logs              |
+| ALB shows 503                     | Check target group health                 |
+| RDS not connecting                | Use Bastion or enable public access       |
+| Terraform errors (already exists) | Use `terraform import` or delete manually |
+| ECS cluster not deleting          | Scale ASG to 0 first                      |
+
+---
+
+## 🧹 Cleanup
+
+To destroy infrastructure:
+
+```bash
+terraform destroy
+```
+
+---
+
+## 📈 Future Improvements
+
+* Add HTTPS (SSL via ACM)
+* Use custom domain (Route53)
+* CI/CD pipeline (GitHub Actions)
+* Dockerized custom application
+* CloudWatch logs & alarms
+* Terraform remote backend (S3 + DynamoDB)
 
 ---
 
 ## 👩‍💻 Author
 
-Anuja Ayare.
+**Anuja Ayare**
+DevOps Engineer | AWS | Terraform | Kubernetes
 
-Give it a ⭐ on GitHub!
+## 📢 Note
+
+This project is for learning and demonstration purposes. For production, additional security and monitoring enhancements are recommended.
+
+---
