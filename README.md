@@ -107,8 +107,8 @@ terraform-aws-ecs-infra/
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/your-username/terraform-aws-ecs-infra.git
-cd terraform-aws-ecs-infra
+git clone https://github.com/ayareanuja0903-collab/AWS_infrastructure_automation_using_terraform.git
+cd AWS_infrastructure_automation_using_terraform
 ```
 
 ---
