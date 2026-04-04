@@ -2,36 +2,21 @@
 
 ## 📌 Project Overview
 
-This project demonstrates how to deploy a scalable and secure application infrastructure on AWS using Terraform. It includes ECS (Elastic Container Service), Application Load Balancer (ALB), RDS, CloudWatch logging, and VPC Flow Logs for monitoring.
+This project demonstrates how to provision and manage a scalable, secure AWS infrastructure using Terraform. It includes VPC, ECS, RDS, and monitoring with CloudWatch and VPC Flow Logs.
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Architecture Components
 
-```
-VPC – Custom Virtual Private Cloud with public & private subnets
-ECS (Fargate) – Containerized application deployment
-ALB – Application Load Balancer for traffic distribution
-RDS – Managed PostgreSQL database
-CloudWatch – Logging and monitoring
-VPC Flow Logs – Network traffic monitoring
+* **VPC** – Custom Virtual Private Cloud with public and private subnets
+* **ECS (Fargate)** – Containerized application deployment
+* **RDS** – Managed PostgreSQL database
+* **CloudWatch** – Application logging and monitoring
+* **VPC Flow Logs** – Network-level traffic monitoring
 
 ---
 
-## ⚙️ Technologies Used
-
-* Terraform (Infrastructure as Code)
-* AWS ECS (EC2 Launch Type)
-* AWS VPC (Networking)
-* AWS ALB (Load Balancing)
-* AWS RDS PostgreSQL (Database)
-* IAM (Roles & Policies)
-* Auto Scaling Group (ASG)
-* CloudWatch (Monitoring)
-
----
-
-## 📂 Project Structure
+## 📁 Project Structure
 
 ```
 AWS_infrastructure_automation_using_terraform/
@@ -42,203 +27,126 @@ AWS_infrastructure_automation_using_terraform/
 │
 ├── modules/
 │   ├── vpc/
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-│   │
 │   ├── ecs/
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-│   │
 │   ├── rds/
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-│   │
 │   └── monitoring/
-│       ├── main.tf
-│       ├── variables.tf
-│       └── outputs.tf
 │
 └── .gitignore
 ```
 
 ---
 
-## 🌐 Infrastructure Components
+## ⚙️ Prerequisites
 
-### 🔹 VPC
-
-* Custom VPC with CIDR: `10.0.0.0/16`
-* Public & Private Subnets (Multi-AZ)
-* Internet Gateway & NAT Gateway
-* Route Tables & Associations
-
----
-
-### 🔹 ECS (EC2 Launch Type)
-
-* ECS Cluster with EC2 instances
-* Auto Scaling Group (ASG)
-* Launch Template
-* Capacity Provider
-* ECS Service & Task Definition (NGINX container)
-
----
-
-### 🔹 Load Balancer (ALB)
-
-* Deployed in public subnets
-* Listener on port 80 (HTTP)
-* Target group routing traffic to ECS tasks
-* Health checks enabled
-
----
-
-### 🔹 RDS PostgreSQL
-
-* Engine: PostgreSQL 15
-* Instance Type: `db.t3.micro`
-* Multi-AZ enabled
-* Private subnet deployment
-* Automated backups enabled
-
----
-
-###  CloudWatch Logs (ECS)
-Each ECS container sends logs to CloudWatch
-Helps in debugging and monitoring application behavior
-resource "aws_cloudwatch_log_group" "ecs_logs" {
-  name              = "/ecs/app"
-  retention_in_days = 7
-}
-logConfiguration = {
-  logDriver = "awslogs"
-  options = {
-    awslogs-group         = "/ecs/app"
-    awslogs-region        = "ap-south-1"
-    awslogs-stream-prefix = "ecs"
-  }
-}
-
-## 🔐 Security Features
-
-* ECS instances in private subnets
-* RDS not publicly accessible
-* Security Groups configured:
-
-  * ALB → Public HTTP access
-  * ECS → Only ALB access
-  * RDS → Only ECS access
-* IAM roles with least privilege
+* AWS Account
+* Terraform installed
+* AWS CLI configured (`aws configure`)
+* IAM user with required permissions
 
 ---
 
 ## 🚀 Deployment Steps
 
-### 1️⃣ Initialize Terraform
-
 ```bash
 terraform init
-```
-
-### 2️⃣ Plan Infrastructure
-
-```bash
 terraform plan
-```
-
-### 3️⃣ Apply Configuration
-
-```bash
 terraform apply
 ```
 
 ---
 
-## 📤 Outputs
+## 🔐 Security Best Practices
 
-After deployment, Terraform will output:
+* Use **least privilege IAM roles**
+* Restrict traffic using **Security Groups**
+* Enable **encryption at rest and in transit**
+* Store secrets using **AWS Secrets Manager / SSM Parameter Store**
 
-* **ALB DNS**
+---
 
-```
-http://my-alb-new-xxxxx.ap-south-1.elb.amazonaws.com
-```
+## 📊 Monitoring & Logging
 
-* **RDS Endpoint**
+### ✅ CloudWatch Logs (ECS)
 
-```
-my-postgres-db.xxxxxx.ap-south-1.rds.amazonaws.com:5432
+* Captures application logs from ECS containers
+* Useful for debugging and performance monitoring
+
+```hcl
+resource "aws_cloudwatch_log_group" "ecs_logs" {
+  name              = "/ecs/app"
+  retention_in_days = 7
+}
 ```
 
 ---
 
-## 🧪 Testing
+### 🌐 VPC Flow Logs
 
-### 🌐 Test Application
+* Captures all network traffic within the VPC
+* Helps in security analysis and troubleshooting
 
-Open ALB DNS in browser → Should display:
-
+```hcl
+resource "aws_flow_log" "vpc_flow" {
+  log_destination      = aws_cloudwatch_log_group.vpc_logs.arn
+  log_destination_type = "cloud-watch-logs"
+  traffic_type         = "ALL"
+  vpc_id               = module.vpc.vpc_id
+}
 ```
-Welcome to NGINX
-```
 
 ---
 
-### 🗄️ Test Database
+## ⚡ Scalability Features
 
-⚠️ RDS is deployed in private subnet (not publicly accessible)
-
-Options to connect:
-
-* Use Bastion Host (EC2)
-* Connect from ECS application
-* Temporarily enable public access for testing
+* ECS auto scaling
+* Multi-AZ deployment
+* Highly available infrastructure
 
 ---
 
-## ⚠️ Common Issues & Fixes
+## 🧨 Destroy Infrastructure
 
-| Issue                             | Solution                                  |
-| --------------------------------- | ----------------------------------------- |
-| ECS tasks not running             | Check desired_count and logs              |
-| ALB shows 503                     | Check target group health                 |
-| RDS not connecting                | Use Bastion or enable public access       |
-| Terraform errors (already exists) | Use `terraform import` or delete manually |
-| ECS cluster not deleting          | Scale ASG to 0 first                      |
-
----
-
-## 🧹 Cleanup
-
-To destroy infrastructure:
+### 🔥 Delete all resources
 
 ```bash
 terraform destroy
 ```
 
----
+### 🔍 Preview before deletion
 
-## 📈 Future Improvements
-
-* Add HTTPS (SSL via ACM)
-* Use custom domain (Route53)
-* CI/CD pipeline (GitHub Actions)
-* Dockerized custom application
-* CloudWatch logs & alarms
-* Terraform remote backend (S3 + DynamoDB)
+```bash
+terraform plan -destroy
+```
 
 ---
 
-## 👩‍💻 Author
+## 🌐 VPC Note
 
-**Anuja Ayare**
-DevOps Engineer | AWS | Terraform | Kubernetes
+* A VPC cannot be "stopped" like an EC2 instance
+* To reduce cost:
 
-## 📢 Note
+  * Stop EC2 instances
+  * Scale ECS services to zero
+  * Remove NAT Gateways
+* To completely remove VPC → use `terraform destroy`
+  
+---
 
-This project is for learning and demonstration purposes. For production, additional security and monitoring enhancements are recommended.
+## 📌 Outputs
+
+* VPC ID
+* ECS Service Name
+* RDS Endpoint
 
 ---
+
+## 🎯 Conclusion
+
+This project follows modern DevOps practices including Infrastructure as Code, modular design, security, and observability using AWS and Terraform.
+
+---
+
+## 🙌 Author
+https://github.com/ayareanuja0903-collab?tab=repositories
+
+If you like this project, give it a ⭐ on GitHub!
