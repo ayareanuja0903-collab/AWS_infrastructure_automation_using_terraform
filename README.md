@@ -2,24 +2,19 @@
 
 ## 📌 Project Overview
 
-This project demonstrates a **complete production-style AWS infrastructure setup** using Terraform. It includes VPC networking, ECS (EC2 launch type), Application Load Balancer (ALB), and RDS PostgreSQL database deployed in a secure and scalable architecture.
+This project demonstrates how to deploy a scalable and secure application infrastructure on AWS using Terraform. It includes ECS (Elastic Container Service), Application Load Balancer (ALB), RDS, CloudWatch logging, and VPC Flow Logs for monitoring.
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-Internet
-   │
-   ▼
-Application Load Balancer (Public Subnets)
-   │
-   ▼
-ECS Cluster (EC2 Instances - Private Subnets)
-   │
-   ▼
-RDS PostgreSQL (Private Subnets)
-```
+VPC – Custom Virtual Private Cloud with public & private subnets
+ECS (Fargate) – Containerized application deployment
+ALB – Application Load Balancer for traffic distribution
+RDS – Managed PostgreSQL database
+CloudWatch – Logging and monitoring
+VPC Flow Logs – Network traffic monitoring
 
 ---
 
@@ -56,7 +51,12 @@ AWS_infrastructure_automation_using_terraform/
 │   │   ├── variables.tf
 │   │   └── outputs.tf
 │   │
-│   └── rds/
+│   ├── rds/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   │
+│   └── monitoring/
 │       ├── main.tf
 │       ├── variables.tf
 │       └── outputs.tf
@@ -105,6 +105,22 @@ AWS_infrastructure_automation_using_terraform/
 * Automated backups enabled
 
 ---
+
+###  CloudWatch Logs (ECS)
+Each ECS container sends logs to CloudWatch
+Helps in debugging and monitoring application behavior
+resource "aws_cloudwatch_log_group" "ecs_logs" {
+  name              = "/ecs/app"
+  retention_in_days = 7
+}
+logConfiguration = {
+  logDriver = "awslogs"
+  options = {
+    awslogs-group         = "/ecs/app"
+    awslogs-region        = "ap-south-1"
+    awslogs-stream-prefix = "ecs"
+  }
+}
 
 ## 🔐 Security Features
 
