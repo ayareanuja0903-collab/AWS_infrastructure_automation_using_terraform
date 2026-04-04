@@ -238,22 +238,26 @@ resource "aws_ecs_task_definition" "app" {
           hostPort      = 80
         }
       ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.ecs_logs.name
+          awslogs-region        = "ap-south-1"
+          awslogs-stream-prefix = "ecs"
+        }
+      }
     }
   ])
 }
 
-resource "aws_ecs_service" "app" {
-  name            = "my-app-service"
-  cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.app.arn
-  desired_count   = 2
-  launch_type     = "EC2"
 
-  load_balancer {
-    target_group_arn = aws_lb_target_group.tg.arn
-    container_name   = "app"
-    container_port   = 80
-  }
 
-  depends_on = [aws_lb_listener.listener]
+# -----------------------
+# Attach Cloud watch Service to ALB
+# -----------------------
+resource "aws_cloudwatch_log_group" "ecs_logs" {
+  name = "/ecs/app"
+  retention_in_days = 7
 }
+
